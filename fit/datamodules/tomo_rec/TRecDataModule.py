@@ -1,20 +1,18 @@
-from os.path import join, exists
-from typing import Optional, Union, List
+from os.path import exists, join
+from typing import List, Optional, Union
 
 import dival
 import numpy as np
 import torch
+import wget
+from fit.datamodules.GroundTruthDatasetFactory import GroundTruthDatasetFactory
+from fit.datamodules.tomo_rec.TRecFCDataset import \
+    TRecFourierCoefficientDataset
+from fit.utils.utils import normalize
 from pytorch_lightning import LightningDataModule
+from skimage.transform import resize
 from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST
-
-from fit.datamodules.tomo_rec.TRecFCDataset import TRecFourierCoefficientDataset
-from fit.datamodules.GroundTruthDatasetFactory import GroundTruthDatasetFactory
-from skimage.transform import resize
-
-from fit.utils.utils import normalize
-
-import wget
 
 
 class TomoFITDataModule(LightningDataModule):
@@ -122,9 +120,10 @@ class MNIST_TRecFITDM(TomoFITDataModule):
         mnist_test *= circle
 
         ds_factory = GroundTruthDatasetFactory(mnist_train, mnist_val, mnist_test, inner_circle=self.inner_circle)
+        impl = kwargs.get('impl','astra_cpu')
         self.gt_ds = ds_factory.build_projection_dataset(num_angles=self.num_angles,
                                                          upscale_shape=70,
-                                                         impl='astra_cpu')
+                                                         impl=impl)
 
 
 class LoDoPaB_TRecFITDM(TomoFITDataModule):
